@@ -52,6 +52,24 @@ Mad Mimi account.
   # Sent via good old ActionMailer
   UserNotifier.deliver_reset(user)
 
+== API CHANGES:
+
+As of 1 November Mad Mimi's mailer API is becoming asynchronous. To simulate synchronous behaviour
+you can set _synchronous_ to true in the _synchronization_settings_:
+
+  MadMimiMailer.synchronization_settings = {
+    :synchronous => true,         # Defaults to false
+    :sleep_between_attempts => 2, # Defaults to a minimum of 1 second
+    :number_attempts => 3         # Defaults to a maximum of 5
+  }
+
+If you would prefer to use the asynchronous behaviour you may need to check the
+status of the mail: see http://madmimi.com/developer/mailer/status
+
+  # Send api request to Mad Mimi and receive a transaction_id
+  transaction_id = UserNotifier.deliver_mimi_welcome(user)
+  
+  # ... use transaction_id with subsequent status check to Mad Mimi
 
 == REQUIREMENTS:
 
