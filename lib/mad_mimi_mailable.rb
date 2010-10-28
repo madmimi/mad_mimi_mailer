@@ -64,7 +64,6 @@ module MadMimiMailable
       end
 
       return unless perform_deliveries
-
       if delivery_method == :test
         deliveries << (mail.mail ? mail.mail : mail)
       else
@@ -92,7 +91,7 @@ module MadMimiMailable
       }
 
       params['unconfirmed'] = '1' if mail.unconfirmed
-
+      
       if use_erb?(mail)
         if mail.parts.any?
           params['raw_plain_text'] = content_for(mail, "text/plain")
@@ -113,6 +112,16 @@ module MadMimiMailable
       end
 
       check_response(response)
+    end
+    
+    def call_status_api!(transaction_id)
+      params = {
+        'username' => MadMimiMailer.api_settings[:username],
+        'api_key' =>  MadMimiMailer.api_settings[:api_key]
+      }
+      response = status_get_request(transaction_id) do |request|
+        request.set_form_data(params)
+      end
     end
     
     def check_response(response)

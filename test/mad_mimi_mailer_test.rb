@@ -25,7 +25,7 @@ class MadMimiMailerTest < Test::Unit::TestCase
 
     MadMimiMailer.deliver_mimi_hola("welcome to mad mimi")
   end
-
+  
   def test_happy_path
     mock_request = mock("request")
     mock_request.expects(:set_form_data).with(
