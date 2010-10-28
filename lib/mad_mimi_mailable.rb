@@ -1,5 +1,8 @@
 module MadMimiMailable
-  SINGLE_SEND_URL = 'https://api.madmimi.com/mailer'
+  SINGLE_SEND_URL          = 'https://api.madmimi.com/mailer'
+  STATUS_URL               = 'https://api.madmimi.com/mailers/status/TRANSACTION_ID'
+  MAX_SYNCHRONOUS_ATTEMPTS = 5
+  MIN_SYNCHRONOUS_SLEEP    = 1
   
   def self.included(base)
     base.extend(ClassMethods)
@@ -109,12 +112,62 @@ module MadMimiMailable
         request.set_form_data(params)
       end
 
+      check_response(response)
+    end
+    
+    def check_response(response)
+      transaction_id = asynchronous_response(response)
+      if synchronous?
+        synchronous_response(transaction_id)
+      end
+      transaction_id
+    end
+    
+    def synchronous?
+      sync_setting = MadMimiMailer.synchronization_settings[:synchronous]
+      !sync_setting.nil? && sync_setting == true
+    end
+    
+    def asynchronous_response(response)
+      check_for_success(response)
+    end
+    
+    def synchronous_response(transaction_id)
+      status = nil
+      max_attempts.times do |attempt_number|
+        response = call_status_api!(transaction_id)
+        status = check_for_success(response)
+        if status == 'failed'
+          response.error!
+        elsif status != 'ignorant' && status != 'sending'
+          break
+        else
+          sleep(max_sleep)
+        end
+      end
+      raise MaxAttemptsExceeded if status.nil?
+      status
+    end
+    
+    def check_for_success(response)
       case response
       when Net::HTTPSuccess
         response.body
       else
         response.error!
       end
+    end
+    
+    def max_sleep
+      amount = MadMimiMailer.synchronization_settings[:sleep_between_attempts]
+      amount = MIN_SYNCHRONOUS_SLEEP if (amount.nil? || amount < MIN_SYNCHRONOUS_SLEEP)
+      amount
+    end
+    
+    def max_attempts
+      count = MadMimiMailer.synchronization_settings[:number_attempts]
+      count = MAX_SYNCHRONOUS_ATTEMPTS if count.nil? || count <= 0 || count > MAX_SYNCHRONOUS_ATTEMPTS
+      count
     end
 
     def content_for(mail, content_type)
@@ -134,6 +187,17 @@ module MadMimiMailable
     def post_request
       url = URI.parse(SINGLE_SEND_URL)
       request = Net::HTTP::Post.new(url.path)
+      yield(request)
+      http = Net::HTTP.new(url.host, url.port)
+      http.use_ssl = true
+      http.start do |http|
+        http.request(request)
+      end
+    end
+    
+    def status_get_request(transaction_id)
+      url = URI.parse(STATUS_URL.gsub!('TRANSACTION_ID', transaction_id))
+      request = Net::HTTP::Get.new(url.path)
       yield(request)
       http = Net::HTTP.new(url.host, url.port)
       http.use_ssl = true

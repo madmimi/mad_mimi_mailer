@@ -12,6 +12,9 @@ class MadMimiMailer < ActionMailer::Base
   
   @@default_parameters = {}
   cattr_accessor :default_parameters
+  
+  @@synchronization_settings = {}
+  cattr_accessor :synchronization_settings
 
   include MadMimiMailable
   self.method_prefix = "mimi"
