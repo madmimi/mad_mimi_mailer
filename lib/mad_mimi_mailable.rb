@@ -154,7 +154,7 @@ module MadMimiMailable
           sleep(max_sleep)
         end
       end
-      raise MaxAttemptsExceeded if status.nil?
+      raise MadMimiMailer::MaxAttemptsExceeded if status.blank? || status == 'ignorant'|| status == 'sending'
       status
     end
     

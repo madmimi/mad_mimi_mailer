@@ -20,6 +20,9 @@ class MadMimiMailer < ActionMailer::Base
   self.method_prefix = "mimi"
 
   class ValidationError < StandardError; end
+  
+  class MaxAttemptsExceeded < StandardError; end
+  
 end
 
 
