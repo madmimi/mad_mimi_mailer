@@ -173,6 +173,7 @@ class MadMimiMailerTest < Test::Unit::TestCase
     ActionMailer::Base.delivery_method = :test
     MadMimiMailer.expects(:post_request).never
     MadMimiMailer.deliver_normal_non_mimi_email    
+    ActionMailer::Base.delivery_method = :smtp
   end
   
   def test_assert_mail_sent
