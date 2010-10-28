@@ -168,15 +168,11 @@ module MadMimiMailable
     end
     
     def max_sleep
-      amount = MadMimiMailer.synchronization_settings[:sleep_between_attempts]
-      amount = MIN_SYNCHRONOUS_SLEEP if (amount.nil? || amount < MIN_SYNCHRONOUS_SLEEP)
-      amount
+      [MIN_SYNCHRONOUS_SLEEP, MadMimiMailer.synchronization_settings[:sleep_between_attempts]].compact.max
     end
     
     def max_attempts
-      count = MadMimiMailer.synchronization_settings[:number_attempts]
-      count = MAX_SYNCHRONOUS_ATTEMPTS if count.nil? || count <= 0 || count > MAX_SYNCHRONOUS_ATTEMPTS
-      count
+      [MAX_SYNCHRONOUS_ATTEMPTS, MadMimiMailer.synchronization_settings[:number_attempts]].compact.min
     end
 
     def content_for(mail, content_type)
