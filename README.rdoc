@@ -58,8 +58,9 @@ As of 1 November Mad Mimi's mailer API is becoming asynchronous. To simulate syn
 you can set _synchronous_ to true in the _synchronization_settings_:
 
   MadMimiMailer.synchronization_settings = {
-    :synchronous => true,         # Defaults to false
-    :timeout     => 5             # Defaults to 10
+    :synchronous                => true,         # Defaults to false
+    :timeout                    => 5,            # Defaults to 10
+    :suppress_timeout_exception => true          # Defaults to false
   }
 
 If you would prefer to use the asynchronous behaviour you may need to check the
