@@ -1,8 +1,8 @@
 module MadMimiMailable
-  SINGLE_SEND_URL          = 'https://api.madmimi.com/mailer'
-  STATUS_URL               = 'https://api.madmimi.com/mailers/status/TRANSACTION_ID'
-  MAX_SYNCHRONOUS_ATTEMPTS = 5
-  MIN_SYNCHRONOUS_SLEEP    = 1
+  SINGLE_SEND_URL   = 'https://api.madmimi.com/mailer'
+  STATUS_URL        = 'https://api.madmimi.com/mailers/status/TRANSACTION_ID'
+  SYNCHRONOUS_SLEEP = 1
+  SYNCHRONOUS_TIMEOUT = 10
   
   def self.included(base)
     base.extend(ClassMethods)
@@ -143,7 +143,8 @@ module MadMimiMailable
     
     def synchronous_response(transaction_id)
       status = nil
-      max_attempts.times do |attempt_number|
+      start = Time.now
+      while (Time.now - start) < timeout_period
         response = call_status_api!(transaction_id)
         status = check_for_success(response)
         if status == 'failed'
@@ -151,10 +152,10 @@ module MadMimiMailable
         elsif status != 'ignorant' && status != 'sending'
           break
         else
-          sleep(max_sleep)
+          sleep(sleep_period)
         end
       end
-      raise MadMimiMailer::MaxAttemptsExceeded if status.blank? || status == 'ignorant'|| status == 'sending'
+      raise MadMimiMailer::TimeoutExceeded if status.blank? || status == 'ignorant'|| status == 'sending'
       status
     end
     
@@ -167,12 +168,14 @@ module MadMimiMailable
       end
     end
     
-    def max_sleep
-      [MIN_SYNCHRONOUS_SLEEP, MadMimiMailer.synchronization_settings[:sleep_between_attempts]].compact.max
+    def sleep_period
+      SYNCHRONOUS_SLEEP
     end
     
-    def max_attempts
-      [MAX_SYNCHRONOUS_ATTEMPTS, MadMimiMailer.synchronization_settings[:number_attempts]].compact.min
+    def timeout_period
+      timeout_setting = MadMimiMailer.synchronization_settings[:timeout]
+      return timeout_setting if !timeout_setting.nil?
+      SYNCHRONOUS_TIMEOUT
     end
 
     def content_for(mail, content_type)

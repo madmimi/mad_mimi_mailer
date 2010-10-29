@@ -21,7 +21,7 @@ class MadMimiMailer < ActionMailer::Base
 
   class ValidationError < StandardError; end
   
-  class MaxAttemptsExceeded < StandardError; end
+  class TimeoutExceeded < StandardError; end
   
 end
 

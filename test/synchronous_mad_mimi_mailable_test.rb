@@ -48,7 +48,7 @@ class SynchronousMadMimiMailableTest < Test::Unit::TestCase
   end
 
   def test_typical_synchronous_request
-    VanillaMailer.stubs(:max_sleep).returns(0)
+    VanillaMailer.stubs(:sleep_period).returns(0)
     mock_request = mock("request")
     mock_request.expects(:set_form_data).with(
       'username' => "testy@mctestin.com",
@@ -74,7 +74,7 @@ class SynchronousMadMimiMailableTest < Test::Unit::TestCase
   end
 
   def test_synchronous_erb_request_with_custom_method_prefix
-    ChocolateErbMailer.stubs(:max_sleep).returns(0)
+    ChocolateErbMailer.stubs(:sleep_period).returns(0)
     mock_request = mock("request")
     mock_request.expects(:set_form_data).with(
       'username' => "testy@mctestin.com",

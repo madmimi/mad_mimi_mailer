@@ -6,7 +6,7 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
     ActionMailer::Base.deliveries.clear
     
     MadMimiMailer.synchronization_settings = { :synchronous => true}
-    MadMimiMailer.stubs(:max_sleep).returns(0)
+    MadMimiMailer.stubs(:sleep_period).returns(0)
     
     @ok_reponse = Net::HTTPSuccess.new("1.2", '200', 'OK')
     @ok_reponse.stubs(:body).returns('123435')
@@ -90,8 +90,8 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
       'username' => "testy@mctestin.com"
     )
     MadMimiMailer.expects(:status_get_request).at_least_once.with('123435').yields(get_mock_request).returns(@exceeded_get_response)
-    
-    assert_raise(MadMimiMailer::MaxAttemptsExceeded) do
+    MadMimiMailer.stubs(:timeout_period).returns(0.1)    
+    assert_raise(MadMimiMailer::TimeoutExceeded) do
       MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
     end
   end
