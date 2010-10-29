@@ -59,8 +59,7 @@ you can set _synchronous_ to true in the _synchronization_settings_:
 
   MadMimiMailer.synchronization_settings = {
     :synchronous => true,         # Defaults to false
-    :sleep_between_attempts => 2, # Defaults to a minimum of 1 second
-    :number_attempts => 3         # Defaults to a maximum of 5
+    :timeout     => 5             # Defaults to 10
   }
 
 If you would prefer to use the asynchronous behaviour you may need to check the
@@ -69,7 +68,33 @@ status of the mail: see http://madmimi.com/developer/mailer/status
   # Send api request to Mad Mimi and receive a transaction_id
   transaction_id = UserNotifier.deliver_mimi_welcome(user)
   
-  # ... use transaction_id with subsequent status check to Mad Mimi
+  # ... use transaction_id with subsequent status check to Mad Mimi, for example
+  require 'rubygems'
+  require 'httparty'
+
+  class StatusChecker
+    include HTTParty
+    base_uri 'http://madmimi.com/'
+
+    def self.go transaction_id
+      username = 'you@username.com'
+      key = 'your_api_key'
+      get("/mailers/status/#{transaction_id}", :body => {
+        :username => username,
+        :api_key => key
+      }).response
+    end
+  end
+
+  done = false
+  while !done
+    response = StatusChecker.go relevant_transaction_id
+    done = !%w(ignorant sending).include?(response)
+    sleep(5) unless done
+  end
+
+  #... do stuff here ...
+  
 
 == REQUIREMENTS:
 
