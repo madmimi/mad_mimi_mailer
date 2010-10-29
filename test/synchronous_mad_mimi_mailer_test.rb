@@ -36,10 +36,10 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
       'username' => "testy@mctestin.com"
     )
     MadMimiMailer.expects(:status_get_request).at_least_once.with('123435').yields(get_mock_request).returns(@ok_get_response)
-
+  
     MadMimiMailer.deliver_mimi_hola("welcome to mad mimi")
   end
-
+  
   def test_synchronous_happy_path
     mock_request = mock("request")
     mock_request.expects(:set_form_data).with(
@@ -54,14 +54,14 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
       'hidden' =>         nil
     )
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(@ok_reponse)
-
+  
     get_mock_request = mock("get_request")
     get_mock_request.expects(:set_form_data).at_least_once.with(
       'api_key' =>  "w00tb4r",
       'username' => "testy@mctestin.com"
     )
     MadMimiMailer.expects(:status_get_request).at_least_once.with('123435').yields(get_mock_request).returns(@ok_get_response)
-
+  
     promotion_attempt_id = MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
     assert_equal "123435", promotion_attempt_id
   end
@@ -80,10 +80,10 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
       'hidden' =>         nil
     )
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(@ok_reponse)
-
+  
     @exceeded_get_response = Net::HTTPSuccess.new("1.2", '200', 'OK')
     @exceeded_get_response.stubs(:body).returns('ignorant')
-
+  
     get_mock_request = mock("get_request")
     get_mock_request.expects(:set_form_data).at_least_once.with(
       'api_key' =>  "w00tb4r",
@@ -110,10 +110,10 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
       'hidden' =>         nil
     )
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(@ok_reponse)
-
+  
     @failed_get_response = Net::HTTPSuccess.new("1.2", '200', 'OK')
     @failed_get_response.stubs(:body).returns('ignorant', 'sending', 'failed')
-
+  
     get_mock_request = mock("get_request")
     get_mock_request.expects(:set_form_data).at_least_once.with(
       'api_key' =>  "w00tb4r",
@@ -122,6 +122,38 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
     MadMimiMailer.expects(:status_get_request).at_least_once.with('123435').yields(get_mock_request).returns(@failed_get_response)
     
     assert_raise(Net::HTTPError) do
+      MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
+    end
+  end
+  
+  def test_synchronous_does_not_raise_exception_if_timeout_suppress_set_to_true
+    MadMimiMailer.synchronization_settings = {:suppress_timeout_exception => true, :synchronous => true}
+    MadMimiMailer.stubs(:timeout_period).returns(0.1)
+    mock_request = mock("request")
+    mock_request.expects(:set_form_data).with(
+      'username' => "testy@mctestin.com",
+      'api_key' =>  "w00tb4r",
+      'promotion_name' => "hello",
+      'recipients' =>     "tyler@obtiva.com",
+      'subject' =>        "welcome to mad mimi",
+      'bcc' =>            "Gregg Pollack <gregg@example.com>, David Clymer <david@example>",
+      'from' =>           "dave@obtiva.com",
+      'body' =>           "--- \nmessage: welcome to mad mimi\n",
+      'hidden' =>         nil
+    )
+    MadMimiMailer.expects(:post_request).yields(mock_request).returns(@ok_reponse)
+
+    @ignorant_get_response = Net::HTTPSuccess.new("1.2", '200', 'OK')
+    @ignorant_get_response.stubs(:body).returns('ignorant')
+
+    get_mock_request = mock("get_request")
+    get_mock_request.expects(:set_form_data).at_least_once.with(
+      'api_key' =>  "w00tb4r",
+      'username' => "testy@mctestin.com"
+    )
+    MadMimiMailer.expects(:status_get_request).at_least_once.with('123435').yields(get_mock_request).returns(@ignorant_get_response)
+    
+    assert_nothing_raised do
       MadMimiMailer.deliver_mimi_hello("welcome to mad mimi")
     end
   end
@@ -140,10 +172,10 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
       'hidden' =>         nil
     )
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(@ok_reponse)
-
+  
     @opt_out_get_response = Net::HTTPSuccess.new("1.2", '200', 'OK')
     @opt_out_get_response.stubs(:body).returns('ignorant', 'sending', 'opted_out')
-
+  
     get_mock_request = mock("get_request")
     get_mock_request.expects(:set_form_data).at_least_once.with(
       'api_key' =>  "w00tb4r",
@@ -195,7 +227,7 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
       'hidden' =>         nil
     )
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(@ok_reponse)
-
+  
     get_mock_request = mock("get_request")
     get_mock_request.expects(:set_form_data).at_least_once.with(
       'api_key' =>  "w00tb4r",
@@ -221,7 +253,7 @@ class SynchronousMadMimiMailerTest < Test::Unit::TestCase
       'hidden' =>         nil
     )
     MadMimiMailer.expects(:post_request).yields(mock_request).returns(@ok_reponse)
-
+  
     get_mock_request = mock("get_request")
     get_mock_request.expects(:set_form_data).at_least_once.with(
       'api_key' =>  "w00tb4r",

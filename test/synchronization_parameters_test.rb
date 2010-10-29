@@ -14,5 +14,14 @@ class SynchronizationParametersTest < Test::Unit::TestCase
     MadMimiMailer.synchronization_settings = {:timeout => 5}
     assert_equal MadMimiMailer.timeout_period, 5
   end
+  
+  def test_timeout_exception_defaults_to_false
+    assert_equal MadMimiMailer.suppress_timeout_exception?, false
+  end
+  
+  def test_timeout_exception_suppression_can_be_set
+    MadMimiMailer.synchronization_settings = {:suppress_timeout_exception => true}
+    assert MadMimiMailer.suppress_timeout_exception?
+  end
 
 end

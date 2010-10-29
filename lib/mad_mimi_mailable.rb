@@ -149,13 +149,13 @@ module MadMimiMailable
         status = check_for_success(response)
         if status == 'failed'
           response.error!
-        elsif status != 'ignorant' && status != 'sending'
+        elsif !%w(ignorant sending).include?(status)
           break
         else
           sleep(sleep_period)
         end
       end
-      raise MadMimiMailer::TimeoutExceeded if status.blank? || status == 'ignorant'|| status == 'sending'
+      raise MadMimiMailer::TimeoutExceeded if !suppress_timeout_exception? &&( status.blank? || %w(ignorant sending).include?(status))
       status
     end
     
@@ -176,6 +176,10 @@ module MadMimiMailable
       timeout_setting = MadMimiMailer.synchronization_settings[:timeout]
       return timeout_setting if !timeout_setting.nil?
       SYNCHRONOUS_TIMEOUT
+    end
+    
+    def suppress_timeout_exception?
+      MadMimiMailer.synchronization_settings[:suppress_timeout_exception] == true
     end
 
     def content_for(mail, content_type)
